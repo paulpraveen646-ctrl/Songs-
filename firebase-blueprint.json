@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "Song": {
+      "title": "Song",
+      "description": "A Christian song with lyrics in Telugu.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the song."
+        },
+        "lyrics": {
+          "type": "string",
+          "description": "The full lyrics of the song in Telugu."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the song (e.g., Praise, Worship, Gospel)."
+        },
+        "author": {
+          "type": "string",
+          "description": "The author or composer of the song."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the song was added."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the song was last updated."
+        },
+        "addedBy": {
+          "type": "string",
+          "description": "The UID of the user who added the song."
+        }
+      },
+      "required": ["title", "lyrics", "category", "createdAt", "addedBy"]
+    }
+  },
+  "firestore": {
+    "songs": {
+      "schema": "Song",
+      "description": "Collection of Telugu Christian songs."
+    }
+  }
+}

@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: songs
+    // Fields:
+    //   - title: string (required, 1-200 chars)
+    //   - lyrics: string (required, 1-10000 chars)
+    //   - category: string (required, 1-50 chars)
+    //   - author: string (optional, 0-100 chars)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (optional)
+    //   - addedBy: string (required, UID of the creator)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidSong(data) {
+      return data.keys().hasAll(['title', 'lyrics', 'category', 'createdAt', 'addedBy']) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+             data.lyrics is string && data.lyrics.size() >= 1 && data.lyrics.size() <= 10000 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 50 &&
+             (data.author == null || (data.author is string && data.author.size() <= 100)) &&
+             data.createdAt is timestamp &&
+             (isAuthenticated() ? data.addedBy == request.auth.uid : data.addedBy == 'anonymous');
+    }
+
+    match /songs/{songId} {
+      // Anyone can read songs
+      allow read: if true;
+      
+      // Anyone can create songs, but they must be valid
+      allow create: if isValidSong(request.resource.data);
+      
+      // Only the person who added the song can update or delete it
+      allow update: if isAuthenticated() && isOwner(resource.data.addedBy) && isValidSong(request.resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data.addedBy);
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
